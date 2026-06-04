@@ -1,6 +1,6 @@
--- DROP DATABASE IF EXISTS hotel_db;
--- CREATE DATABASE hotel_db;
--- USE hotel_db;
+DROP DATABASE IF EXISTS hotel_db;
+CREATE DATABASE hotel_db;
+USE hotel_db;
 
 -- ============================================================
 -- SECTION 1: TABLE DEFINITIONS
