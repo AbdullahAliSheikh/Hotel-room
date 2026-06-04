@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hotel Management System</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Georgia', serif;
+    background: #f5f0e8;
+    color: #2c2416;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .layout { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px;
+    background: #1a1208;
+    color: #e8d9b5;
+    padding: 0;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-logo {
+    padding: 28px 24px 20px;
+    border-bottom: 1px solid #2e2010;
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #d4a84b;
+  }
+
+  .sidebar-logo span { display: block; font-size: 11px; letter-spacing: 3px; color: #7a6040; font-style: normal; margin-top: 2px; text-transform: uppercase; }
+
+  .nav-section { padding: 16px 0 8px; }
+  .nav-label { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #5a4020; padding: 0 24px 8px; }
+
+  .nav-item {
+    display: block;
+    padding: 10px 24px;
+    color: #b09060;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+  }
+  .nav-item:hover, .nav-item.active {
+    background: #2e1e08;
+    color: #d4a84b;
+    border-left-color: #d4a84b;
+  }
+  .nav-item .icon { margin-right: 10px; font-size: 16px; }
+
+  /* ── Main Content ── */
+  .main { flex: 1; display: flex; flex-direction: column; }
+
+  .topbar {
+    background: #fff;
+    border-bottom: 1px solid #e0d4b8;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topbar h1 { font-size: 20px; color: #1a1208; font-weight: normal; letter-spacing: 0.5px; }
+  .topbar-info { font-size: 13px; color: #8a7040; }
+
+  .content { padding: 32px; flex: 1; }
+
+  /* ── Section Pages ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── Stat Cards ── */
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+  .stat-card {
+    background: #fff;
+    border: 1px solid #e0d4b8;
+    border-radius: 8px;
+    padding: 20px;
+    border-top: 3px solid #d4a84b;
+  }
+  .stat-label { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: #8a7040; margin-bottom: 8px; }
+  .stat-value { font-size: 28px; color: #1a1208; }
+  .stat-sub { font-size: 12px; color: #a08050; margin-top: 4px; }
+
+  /* ── Tables ── */
+  .table-card {
+    background: #fff;
+    border: 1px solid #e0d4b8;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  .table-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid #e0d4b8;
+    font-size: 15px;
+    color: #1a1208;
+    background: #fdfaf4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: #fdfaf4;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #8a7040;
+    border-bottom: 1px solid #e0d4b8;
+    font-weight: normal;
+  }
+  td {
+    padding: 12px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid #f0e8d0;
+    color: #3a2c14;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fdfaf4; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: normal;
+  }
+  .badge-available  { background: #e8f5e0; color: #2e6e10; }
+  .badge-occupied   { background: #fff0d0; color: #7a4a00; }
+  .badge-maintenance{ background: #fce8e8; color: #8a1010; }
+  .badge-confirmed  { background: #e0eeff; color: #1040a0; }
+  .badge-cancelled  { background: #fce8e8; color: #8a1010; }
+  .badge-checkedout { background: #eeeeee; color: #555; }
+  .badge-paid       { background: #e8f5e0; color: #2e6e10; }
+  .badge-pending    { background: #fff0d0; color: #7a4a00; }
+
+  /* ── Forms ── */
+  .form-card {
+    background: #fff;
+    border: 1px solid #e0d4b8;
+    border-radius: 8px;
+    padding: 28px;
+    max-width: 600px;
+    margin-bottom: 24px;
+  }
+  .form-card h3 { font-size: 16px; margin-bottom: 20px; color: #1a1208; font-weight: normal; border-bottom: 1px solid #e0d4b8; padding-bottom: 12px; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .form-row.full { grid-template-columns: 1fr; }
+
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label { font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #8a7040; }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 10px 12px;
+    border: 1px solid #d0c4a0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fdfaf4;
+    color: #2c2416;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-group input:focus,
+  .form-group select:focus { border-color: #d4a84b; background: #fff; }
+
+  .btn {
+    padding: 11px 24px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: #d4a84b; color: #1a1208; font-weight: bold; }
+  .btn-primary:hover { background: #c4983b; }
+  .btn-danger  { background: #c0392b; color: #fff; }
+  .btn-danger:hover { background: #a93226; }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+  /* ── Alert ── */
+  .alert { padding: 12px 16px; border-radius: 6px; font-size: 14px; margin-bottom: 16px; display: none; }
+  .alert-success { background: #e8f5e0; color: #2e6e10; border: 1px solid #b0d890; }
+  .alert-error   { background: #fce8e8; color: #8a1010; border: 1px solid #f0b0b0; }
+
+  /* ── Loading ── */
+  .loading { text-align: center; padding: 40px; color: #8a7040; font-size: 14px; }
+
+  /* ── Search bar ── */
+  .search-row { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; }
+  .search-row input, .search-row select {
+    padding: 9px 14px;
+    border: 1px solid #d0c4a0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+    color: #2c2416;
+    outline: none;
+  }
+  .search-row input:focus, .search-row select:focus { border-color: #d4a84b; }
+  .search-row input { flex: 1; }
+
+  /* ── Report boxes ── */
+  .report-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+  .scrollable-table { max-height: 340px; overflow-y: auto; }
+
+  @media (max-width: 900px) {
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+    .report-grid { grid-template-columns: 1fr; }
+    .sidebar { width: 60px; }
+    .nav-label, .nav-item span { display: none; }
+    .sidebar-logo span { display: none; }
+    .sidebar-logo { font-size: 14px; padding: 20px 16px; }
+    .nav-item { padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">🏨 Grand<span>Hotel Management</span></div>
+
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="showPage('dashboard')"><span class="icon">📊</span><span>Dashboard</span></div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Manage</div>
+      <div class="nav-item" onclick="showPage('rooms')"><span class="icon">🛏</span><span>Rooms</span></div>
+      <div class="nav-item" onclick="showPage('guests')"><span class="icon">👤</span><span>Guests</span></div>
+      <div class="nav-item" onclick="showPage('bookings')"><span class="icon">📅</span><span>Bookings</span></div>
+      <div class="nav-item" onclick="showPage('payments')"><span class="icon">💳</span><span>Payments</span></div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">More</div>
+      <div class="nav-item" onclick="showPage('staff')"><span class="icon">👷</span><span>Staff</span></div>
+      <div class="nav-item" onclick="showPage('reports')"><span class="icon">📈</span><span>Reports</span></div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <h1 id="page-title">Dashboard</h1>
+      <div class="topbar-info" id="current-date"></div>
+    </div>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div id="page-dashboard" class="page active">
+        <div class="stat-grid" id="stats-grid">
+          <div class="stat-card"><div class="stat-label">Total Rooms</div><div class="stat-value" id="stat-rooms">—</div></div>
+          <div class="stat-card"><div class="stat-label">Available</div><div class="stat-value" id="stat-available">—</div></div>
+          <div class="stat-card"><div class="stat-label">Total Guests</div><div class="stat-value" id="stat-guests">—</div></div>
+          <div class="stat-card"><div class="stat-label">Active Bookings</div><div class="stat-value" id="stat-bookings">—</div></div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">Available Rooms Right Now</div>
+          <div class="scrollable-table">
+            <table id="tbl-available"><tbody><tr><td class="loading">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">Currently Checked-In Guests</div>
+          <div class="scrollable-table">
+            <table id="tbl-checkedin"><tbody><tr><td class="loading">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROOMS -->
+      <div id="page-rooms" class="page">
+        <div class="search-row">
+          <input type="text" id="room-search" placeholder="Search room number…" oninput="filterRooms()">
+          <select id="room-type-filter" onchange="filterRooms()">
+            <option value="">All Types</option>
+            <option value="Single">Single</option>
+            <option value="Double">Double</option>
+            <option value="Suite">Suite</option>
+          </select>
+          <select id="room-status-filter" onchange="filterRooms()">
+            <option value="">All Status</option>
+            <option value="Available">Available</option>
+            <option value="Occupied">Occupied</option>
+            <option value="Maintenance">Maintenance</option>
+          </select>
+        </div>
+        <div class="table-card">
+          <div class="table-header">All Rooms</div>
+          <div class="scrollable-table">
+            <table id="tbl-rooms"><tbody><tr><td class="loading">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- GUESTS -->
+      <div id="page-guests" class="page">
+        <div class="form-card">
+          <h3>Add New Guest</h3>
+          <div id="guest-alert" class="alert"></div>
+          <div class="form-row">
+            <div class="form-group"><label>Full Name</label><input type="text" id="g-name" placeholder="Talha Mehmood"></div>
+            <div class="form-group"><label>CNIC</label><input type="text" id="g-cnic" placeholder="42101-1234567-1"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Phone</label><input type="text" id="g-phone" placeholder="0333-4444444"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="g-email" placeholder="guest@mail.com"></div>
+          </div>
+          <div class="form-row full">
+            <div class="form-group"><label>Address</label><input type="text" id="g-address" placeholder="House 5, Karachi"></div>
+          </div>
+          <button class="btn btn-primary" onclick="addGuest()">Add Guest</button>
+        </div>
+
+        <div class="search-row">
+          <input type="text" id="guest-search" placeholder="Search by name or CNIC…" oninput="filterGuests()">
+        </div>
+        <div class="table-card">
+          <div class="table-header">All Guests</div>
+          <div class="scrollable-table">
+            <table id="tbl-guests"><tbody><tr><td class="loading">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOOKINGS -->
+      <div id="page-bookings" class="page">
+        <div class="form-card">
+          <h3>New Booking</h3>
+          <div id="booking-alert" class="alert"></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Guest</label>
+              <select id="b-guest"><option value="">Select guest…</option></select>
+            </div>
+            <div class="form-group">
+              <label>Room</label>
+              <select id="b-room"><option value="">Select room…</option></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Check-In</label><input type="date" id="b-checkin"></div>
+            <div class="form-group"><label>Check-Out</label><input type="date" id="b-checkout"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Payment Method</label>
+              <select id="b-method">
+                <option value="Cash">Cash</option>
+                <option value="Card">Card</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Created By (Staff ID)</label>
+              <select id="b-staff"><option value="">Select staff…</option></select>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="addBooking()">Create Booking</button>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">All Bookings</div>
+          <div class="scrollable-table">
+            <table id="tbl-bookings"><tbody><tr><td class="loading">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAYMENTS -->
+      <div id="page-payments" class="page">
+        <div class="form-card">
+          <h3>Mark Payment as Paid</h3>
+          <div id="pay-alert" class="alert"></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Booking ID</label>
+              <input type="number" id="p-booking-id" placeholder="e.g. 3">
+            </div>
+            <div class="form-group">
+              <label>Payment Method</label>
+              <select id="p-method">
+                <option value="Cash">Cash</option>
+                <option value="Card">Card</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="markPaid()">Mark as Paid</button>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">Pending Payments</div>
+          <div class="scrollable-table">
+            <table id="tbl-payments"><tbody><tr><td class="loading">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- STAFF -->
+      <div id="page-staff" class="page">
+        <div class="table-card">
+          <div class="table-header">All Staff</div>
+          <div class="scrollable-table">
+            <table id="tbl-staff"><tbody><tr><td class="loading">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div id="page-reports" class="page">
+        <div class="report-grid">
+          <div class="table-card">
+            <div class="table-header">Most Booked Room Types</div>
+            <table id="tbl-report-types"><tbody><tr><td class="loading">Loading…</td></tr></tbody></table>
+          </div>
+          <div class="table-card">
+            <div class="table-header">Revenue by Month</div>
+            <table id="tbl-report-revenue"><tbody><tr><td class="loading">Loading…</td></tr></tbody></table>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-header">
+            Guest Booking History
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="text" id="cnic-input" placeholder="Enter CNIC…" style="padding:6px 10px;border:1px solid #d0c4a0;border-radius:6px;font-size:13px;background:#fdfaf4;color:#2c2416;outline:none;width:180px;">
+              <button class="btn btn-primary btn-sm" onclick="loadGuestHistory()">Search</button>
+            </div>
+          </div>
+          <div class="scrollable-table">
+            <table id="tbl-report-guest"><tbody><tr><td style="padding:20px;color:#8a7040;font-size:14px;">Enter a CNIC above to search.</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+const API = 'api.php';
+
+// Set date
+document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-PK', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+// ── Navigation ──────────────────────────────────────────────
+const titles = { dashboard:'Dashboard', rooms:'Rooms', guests:'Guests', bookings:'Bookings', payments:'Payments', staff:'Staff', reports:'Reports' };
+let loaded = {};
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  document.getElementById('page-title').textContent = titles[id];
+  if (!loaded[id]) { loaded[id] = true; loadPage(id); }
+}
+
+function loadPage(id) {
+  if (id === 'dashboard')  loadDashboard();
+  if (id === 'rooms')      loadRooms();
+  if (id === 'guests')     loadGuests();
+  if (id === 'bookings')   loadBookings();
+  if (id === 'payments')   loadPayments();
+  if (id === 'staff')      loadStaff();
+  if (id === 'reports')    loadReports();
+}
+
+// ── Fetch helper ────────────────────────────────────────────
+async function api(params) {
+  const res = await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(params) });
+  return res.json();
+}
+
+// ── Badge helper ────────────────────────────────────────────
+function badge(val) {
+  const map = { Available:'available', Occupied:'occupied', Maintenance:'maintenance', Confirmed:'confirmed', Cancelled:'cancelled', CheckedOut:'checkedout', Paid:'paid', Pending:'pending' };
+  return `<span class="badge badge-${map[val]||''}">${val}</span>`;
+}
+
+function showAlert(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = `alert alert-${type}`;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 4000);
+}
+
+// ── Dashboard ───────────────────────────────────────────────
+async function loadDashboard() {
+  const d = await api({ action: 'dashboard' });
+
+  document.getElementById('stat-rooms').textContent    = d.stats.total_rooms    || '—';
+  document.getElementById('stat-available').textContent = d.stats.available_rooms || '—';
+  document.getElementById('stat-guests').textContent   = d.stats.total_guests   || '—';
+  document.getElementById('stat-bookings').textContent = d.stats.active_bookings || '—';
+
+  // Available rooms table
+  const av = document.querySelector('#tbl-available tbody');
+  if (d.available_rooms && d.available_rooms.length) {
+    av.innerHTML = `<tr><th>Room</th><th>Floor</th><th>Type</th><th>Price/Night</th></tr>` +
+      d.available_rooms.map(r =>
+        `<tr><td>${r.room_number}</td><td>${r.floor}</td><td>${r.type_name}</td><td>PKR ${Number(r.price_per_night).toLocaleString()}</td></tr>`
+      ).join('');
+  } else {
+    av.innerHTML = '<tr><td colspan="4" style="padding:20px;color:#8a7040">No available rooms.</td></tr>';
+  }
+
+  // Checked-in guests
+  const ci = document.querySelector('#tbl-checkedin tbody');
+  if (d.checked_in && d.checked_in.length) {
+    ci.innerHTML = `<tr><th>Guest</th><th>Room</th><th>Type</th><th>Check-In</th><th>Check-Out</th></tr>` +
+      d.checked_in.map(r =>
+        `<tr><td>${r.full_name}</td><td>${r.room_number}</td><td>${r.type_name}</td><td>${r.check_in}</td><td>${r.check_out}</td></tr>`
+      ).join('');
+  } else {
+    ci.innerHTML = '<tr><td colspan="5" style="padding:20px;color:#8a7040">No guests currently checked in.</td></tr>';
+  }
+}
+
+// ── Rooms ───────────────────────────────────────────────────
+let allRooms = [];
+async function loadRooms() {
+  const d = await api({ action: 'get_rooms' });
+  allRooms = d.rooms || [];
+  renderRooms(allRooms);
+}
+function renderRooms(rows) {
+  const tb = document.querySelector('#tbl-rooms tbody');
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="5" style="padding:20px;color:#8a7040">No rooms found.</td></tr>'; return; }
+  tb.innerHTML = `<tr><th>Room #</th><th>Floor</th><th>Type</th><th>Price/Night</th><th>Status</th></tr>` +
+    rows.map(r => `<tr><td>${r.room_number}</td><td>${r.floor}</td><td>${r.type_name}</td><td>PKR ${Number(r.price_per_night).toLocaleString()}</td><td>${badge(r.status)}</td></tr>`).join('');
+}
+function filterRooms() {
+  const s = document.getElementById('room-search').value.toLowerCase();
+  const t = document.getElementById('room-type-filter').value;
+  const st = document.getElementById('room-status-filter').value;
+  renderRooms(allRooms.filter(r =>
+    r.room_number.toLowerCase().includes(s) &&
+    (t  ? r.type_name === t  : true) &&
+    (st ? r.status    === st : true)
+  ));
+}
+
+// ── Guests ──────────────────────────────────────────────────
+let allGuests = [];
+async function loadGuests() {
+  const d = await api({ action: 'get_guests' });
+  allGuests = d.guests || [];
+  renderGuests(allGuests);
+}
+function renderGuests(rows) {
+  const tb = document.querySelector('#tbl-guests tbody');
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="5" style="padding:20px;color:#8a7040">No guests found.</td></tr>'; return; }
+  tb.innerHTML = `<tr><th>Name</th><th>CNIC</th><th>Phone</th><th>Email</th><th>Address</th></tr>` +
+    rows.map(r => `<tr><td>${r.full_name}</td><td>${r.cnic}</td><td>${r.phone}</td><td>${r.email||'—'}</td><td>${r.address||'—'}</td></tr>`).join('');
+}
+function filterGuests() {
+  const s = document.getElementById('guest-search').value.toLowerCase();
+  renderGuests(allGuests.filter(r => r.full_name.toLowerCase().includes(s) || r.cnic.toLowerCase().includes(s)));
+}
+async function addGuest() {
+  const data = { action:'add_guest', full_name:document.getElementById('g-name').value.trim(), cnic:document.getElementById('g-cnic').value.trim(), phone:document.getElementById('g-phone').value.trim(), email:document.getElementById('g-email').value.trim(), address:document.getElementById('g-address').value.trim() };
+  if (!data.full_name || !data.cnic || !data.phone) { showAlert('guest-alert','Please fill in Name, CNIC, and Phone.','error'); return; }
+  const r = await api(data);
+  if (r.success) { showAlert('guest-alert','Guest added successfully!','success'); loaded['guests'] = false; loadGuests(); }
+  else showAlert('guest-alert', r.error || 'Error adding guest.', 'error');
+}
+
+// ── Bookings ─────────────────────────────────────────────────
+async function loadBookings() {
+  const [d, gr, rr, sr] = await Promise.all([
+    api({ action: 'get_bookings' }),
+    api({ action: 'get_guests' }),
+    api({ action: 'get_rooms' }),
+    api({ action: 'get_staff' }),
+  ]);
+
+  // Populate selects
+  const gs = document.getElementById('b-guest');
+  gs.innerHTML = '<option value="">Select guest…</option>' + (gr.guests||[]).map(g => `<option value="${g.guest_id}">${g.full_name}</option>`).join('');
+
+  const rs = document.getElementById('b-room');
+  rs.innerHTML = '<option value="">Select room…</option>' + (rr.rooms||[]).filter(r=>r.status==='Available').map(r => `<option value="${r.room_id}">${r.room_number} — ${r.type_name} (PKR ${Number(r.price_per_night).toLocaleString()})</option>`).join('');
+
+  const ss = document.getElementById('b-staff');
+  ss.innerHTML = '<option value="">Select staff…</option>' + (sr.staff||[]).map(s => `<option value="${s.staff_id}">${s.full_name} (${s.role})</option>`).join('');
+
+  const tb = document.querySelector('#tbl-bookings tbody');
+  const rows = d.bookings || [];
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="7" style="padding:20px;color:#8a7040">No bookings found.</td></tr>'; return; }
+  tb.innerHTML = `<tr><th>ID</th><th>Guest</th><th>Room</th><th>Check-In</th><th>Check-Out</th><th>Status</th><th>Action</th></tr>` +
+    rows.map(r => `<tr><td>${r.booking_id}</td><td>${r.guest_name}</td><td>${r.room_number}</td><td>${r.check_in}</td><td>${r.check_out}</td><td>${badge(r.status)}</td><td>${r.status==='Confirmed'?`<button class="btn btn-danger btn-sm" onclick="cancelBooking(${r.booking_id})">Cancel</button>`:'—'}</td></tr>`).join('');
+}
+
+async function addBooking() {
+  const data = { action:'add_booking', guest_id:document.getElementById('b-guest').value, room_id:document.getElementById('b-room').value, check_in:document.getElementById('b-checkin').value, check_out:document.getElementById('b-checkout').value, method:document.getElementById('b-method').value, created_by:document.getElementById('b-staff').value };
+  if (!data.guest_id||!data.room_id||!data.check_in||!data.check_out||!data.created_by) { showAlert('booking-alert','Please fill all fields.','error'); return; }
+  if (data.check_in >= data.check_out) { showAlert('booking-alert','Check-out must be after check-in.','error'); return; }
+  const r = await api(data);
+  if (r.success) { showAlert('booking-alert','Booking created!','success'); loaded['bookings']=false; loadBookings(); }
+  else showAlert('booking-alert', r.error || 'Error creating booking.', 'error');
+}
+
+async function cancelBooking(id) {
+  if (!confirm('Cancel booking #' + id + '?')) return;
+  const r = await api({ action:'cancel_booking', booking_id: id });
+  if (r.success) { loaded['bookings']=false; loadBookings(); if(loaded['dashboard']){loaded['dashboard']=false;loadDashboard();} }
+  else alert(r.error || 'Could not cancel booking.');
+}
+
+// ── Payments ─────────────────────────────────────────────────
+async function loadPayments() {
+  const d = await api({ action: 'get_pending_payments' });
+  const tb = document.querySelector('#tbl-payments tbody');
+  const rows = d.payments || [];
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="6" style="padding:20px;color:#2e6e10">No pending payments 🎉</td></tr>'; return; }
+  tb.innerHTML = `<tr><th>Booking ID</th><th>Guest</th><th>Room</th><th>Amount</th><th>Method</th><th>Status</th></tr>` +
+    rows.map(r => `<tr><td>${r.booking_id}</td><td>${r.guest_name}</td><td>${r.room_number}</td><td>PKR ${Number(r.amount).toLocaleString()}</td><td>${r.method}</td><td>${badge(r.payment_status)}</td></tr>`).join('');
+}
+async function markPaid() {
+  const booking_id = document.getElementById('p-booking-id').value;
+  const method     = document.getElementById('p-method').value;
+  if (!booking_id) { showAlert('pay-alert','Enter a Booking ID.','error'); return; }
+  const r = await api({ action:'mark_paid', booking_id, method });
+  if (r.success) { showAlert('pay-alert','Payment marked as Paid!','success'); loaded['payments']=false; loadPayments(); }
+  else showAlert('pay-alert', r.error || 'Could not update payment.', 'error');
+}
+
+// ── Staff ────────────────────────────────────────────────────
+async function loadStaff() {
+  const d = await api({ action: 'get_staff' });
+  const tb = document.querySelector('#tbl-staff tbody');
+  const rows = d.staff || [];
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="5" style="padding:20px;color:#8a7040">No staff found.</td></tr>'; return; }
+  tb.innerHTML = `<tr><th>ID</th><th>Name</th><th>Username</th><th>Role</th><th>Phone</th><th>Hire Date</th></tr>` +
+    rows.map(r => `<tr><td>${r.staff_id}</td><td>${r.full_name}</td><td>${r.username}</td><td>${r.role}</td><td>${r.phone||'—'}</td><td>${r.hire_date}</td></tr>`).join('');
+}
+
+// ── Reports ──────────────────────────────────────────────────
+async function loadReports() {
+  const [tr, rr] = await Promise.all([
+    api({ action: 'report_room_types' }),
+    api({ action: 'report_revenue' }),
+  ]);
+
+  const t1 = document.querySelector('#tbl-report-types tbody');
+  const rows1 = tr.data || [];
+  t1.innerHTML = rows1.length
+    ? `<tr><th>Room Type</th><th>Total Bookings</th></tr>` + rows1.map(r=>`<tr><td>${r.type_name}</td><td>${r.total_bookings}</td></tr>`).join('')
+    : '<tr><td style="padding:20px;color:#8a7040">No data.</td></tr>';
+
+  const t2 = document.querySelector('#tbl-report-revenue tbody');
+  const rows2 = rr.data || [];
+  t2.innerHTML = rows2.length
+    ? `<tr><th>Month</th><th>Payments</th><th>Revenue</th></tr>` + rows2.map(r=>`<tr><td>${r.month}</td><td>${r.total_payments}</td><td>PKR ${Number(r.total_revenue).toLocaleString()}</td></tr>`).join('')
+    : '<tr><td style="padding:20px;color:#8a7040">No revenue data yet.</td></tr>';
+}
+
+async function loadGuestHistory() {
+  const cnic = document.getElementById('cnic-input').value.trim();
+  if (!cnic) return;
+  const tb = document.querySelector('#tbl-report-guest tbody');
+  tb.innerHTML = '<tr><td style="padding:20px;color:#8a7040">Loading…</td></tr>';
+  const d = await api({ action: 'guest_history', cnic });
+  const rows = d.history || [];
+  if (!rows.length) { tb.innerHTML = '<tr><td colspan="8" style="padding:20px;color:#8a7040">No bookings found for this CNIC.</td></tr>'; return; }
+  tb.innerHTML = `<tr><th>Booking</th><th>Guest</th><th>Room</th><th>Type</th><th>Check-In</th><th>Check-Out</th><th>Amount</th><th>Booking Status</th></tr>` +
+    rows.map(r=>`<tr><td>${r.booking_id}</td><td>${r.guest_name}</td><td>${r.room_number}</td><td>${r.room_type}</td><td>${r.check_in}</td><td>${r.check_out}</td><td>PKR ${Number(r.amount).toLocaleString()}</td><td>${badge(r.booking_status)}</td></tr>`).join('');
+}
+
+// ── Load dashboard on start ──────────────────────────────────
+loaded['dashboard'] = true;
+loadDashboard();
+</script>
+</body>
+</html>
